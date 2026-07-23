@@ -2,13 +2,14 @@
  * CalBingo — service worker
  * Makes the game work offline after the first load: a guest can lose signal
  * and still refresh / reopen the tab. Precaches every asset on install.
- *   • Pages (navigations): network-first, so deployed updates show when online,
- *     with the cached page served when offline.
- *   • Assets (css/js/fonts): cache-first for instant, offline-proof loads.
+ *   • Everything we serve is NETWORK-FIRST: an online visitor always gets the
+ *     freshest deploy (no more stale cached code after a push), and the cached
+ *     copy is served only as an offline fallback.
+ *   • Cross-origin requests (e.g. Supabase) pass straight through, untouched.
  * Relative URLs everywhere so it also works from a subdirectory (GitHub Pages).
  * Bump CACHE_VERSION whenever you change any cached file to force a refresh.
  * ==========================================================================*/
-const CACHE_VERSION = "calbingo-v26";
+const CACHE_VERSION = "calbingo-v27";
 
 const ASSETS = [
   "./",
@@ -58,31 +59,23 @@ self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET") return;
 
-  // Pages: try the network first, fall back to cache when offline.
-  if (req.mode === "navigate") {
-    event.respondWith(
-      fetch(req)
-        .then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE_VERSION).then((c) => c.put(req, copy));
-          return res;
-        })
-        .catch(() => caches.match(req).then((r) => r || caches.match("./index.html")))
-    );
-    return;
-  }
+  // Only manage our own origin; let cross-origin (e.g. Supabase) go to network.
+  const url = new URL(req.url);
+  if (url.origin !== self.location.origin) return;
 
-  // Assets: serve from cache, fall back to network (and cache the result).
+  // Network-first: online always gets the latest deploy; cache is the offline
+  // fallback (and, for a navigation offline, the app shell).
   event.respondWith(
-    caches.match(req).then((cached) => {
-      if (cached) return cached;
-      return fetch(req).then((res) => {
+    fetch(req)
+      .then((res) => {
         if (res && res.status === 200 && res.type === "basic") {
           const copy = res.clone();
           caches.open(CACHE_VERSION).then((c) => c.put(req, copy));
         }
         return res;
-      });
-    })
+      })
+      .catch(() =>
+        caches.match(req).then((r) => r || (req.mode === "navigate" ? caches.match("./index.html") : Response.error()))
+      )
   );
 });
