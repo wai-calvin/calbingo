@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="CalBingo">
+  <!-- full-bleed berry background (safe for maskable icons) -->
+  <rect width="512" height="512" rx="104" fill="#7b3f6f"/>
+  <!-- cream bingo card -->
+  <rect x="96" y="96" width="320" height="320" rx="40" fill="#f7efe1" stroke="#2c1a2e" stroke-width="10"/>
+  <!-- 3x3 of squares; the main diagonal is "won" -->
+  <g>
+    <!-- row 1 -->
+    <rect x="132" y="132" width="72" height="72" rx="16" fill="#2ea3a3"/>
+    <rect x="220" y="132" width="72" height="72" rx="16" fill="#fffdf8" stroke="#d8c7ab" stroke-width="6"/>
+    <rect x="308" y="132" width="72" height="72" rx="16" fill="#fffdf8" stroke="#d8c7ab" stroke-width="6"/>
+    <!-- row 2 (center = free / marigold star) -->
+    <rect x="132" y="220" width="72" height="72" rx="16" fill="#fffdf8" stroke="#d8c7ab" stroke-width="6"/>
+    <rect x="220" y="220" width="72" height="72" rx="16" fill="#f6b52c"/>
+    <polygon points="256,236 265,258 289,258 270,273 277,296 256,282 235,296 242,273 223,258 247,258" fill="#2c1a2e"/>
+    <rect x="308" y="220" width="72" height="72" rx="16" fill="#fffdf8" stroke="#d8c7ab" stroke-width="6"/>
+    <!-- row 3 -->
+    <rect x="132" y="308" width="72" height="72" rx="16" fill="#fffdf8" stroke="#d8c7ab" stroke-width="6"/>
+    <rect x="220" y="308" width="72" height="72" rx="16" fill="#fffdf8" stroke="#d8c7ab" stroke-width="6"/>
+    <rect x="308" y="308" width="72" height="72" rx="16" fill="#2ea3a3"/>
+  </g>
+</svg>

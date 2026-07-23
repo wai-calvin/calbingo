@@ -1,0 +1,662 @@
+/* ============================================================================
+ * CalBingo — styles
+ * Aesthetic: "confetti carnival" — warm cream paper, deep berry ink,
+ * marigold / ocean-blue / teal accents, a characterful high-contrast serif.
+ * Mobile-first.
+ * ==========================================================================*/
+
+:root {
+  --paper:      #f7efe1;
+  --paper-2:    #f1e6d2;
+  --ink:        #2c1a2e;
+  --ink-soft:   #6b5560;
+  --berry:      #7b3f6f;
+  --marigold:   #f6b52c;
+  --accent:     #2f74c0;  /* ocean blue — the brand pop (was coral) */
+  --wrong:      #e8506b;  /* red tone, reserved for error / wrong-answer states */
+  --teal:       #2ea3a3;
+  --line:       #d8c7ab;
+
+  --shadow:     0 2px 0 rgba(44, 26, 46, 0.12);
+  --shadow-lg:  0 14px 40px -12px rgba(44, 26, 46, 0.45);
+  --radius:     14px;
+
+  --font-display: "Fraunces", "Georgia", serif;
+  --font-body:    "DM Sans", system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+  background-color: var(--paper);
+  /* subtle dotted "confetti" texture */
+  background-image:
+    radial-gradient(var(--marigold) 8%, transparent 9%),
+    radial-gradient(var(--accent) 8%, transparent 9%),
+    radial-gradient(var(--teal) 8%, transparent 9%);
+  background-size: 46px 46px, 62px 62px, 78px 78px;
+  background-position: 0 0, 23px 31px, 11px 55px;
+  background-attachment: fixed;
+  color: var(--ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* a translucent scrim so the confetti texture never fights the text */
+.wrap {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 22px 14px 40px;
+  min-height: 100vh;
+  background: linear-gradient(var(--paper), var(--paper));
+  background-color: rgba(247, 239, 225, 0.86);
+  backdrop-filter: blur(1px);
+}
+
+/* ---- header -------------------------------------------------------------- */
+
+.masthead {
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+.eyebrow {
+  display: inline-block;
+  font-family: var(--font-body);
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  font-size: 0.66rem;
+  color: var(--berry);
+  background: var(--paper-2);
+  border: 1.5px solid var(--line);
+  padding: 5px 12px;
+  border-radius: 999px;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-weight: 600;
+  font-size: clamp(2.6rem, 13vw, 4.2rem);
+  line-height: 0.92;
+  margin: 10px 0 6px;
+  letter-spacing: -0.01em;
+}
+.title em {
+  font-style: italic;
+  color: var(--accent);
+}
+
+.instructions {
+  max-width: 34ch;
+  margin: 0 auto;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+/* ---- board --------------------------------------------------------------- */
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+  margin: 20px 0 18px;
+}
+
+.cell {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4px 3px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: clamp(0.42rem, 2.05vw, 0.66rem);
+  line-height: 1.08;
+  color: var(--ink);
+  background: #fffdf8;
+  border: 1.5px solid var(--line);
+  border-radius: 9px;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.08s ease, background 0.15s ease, border-color 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.cell:active { transform: scale(0.94); }
+
+.cell__text {
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* name of the person who satisfied a marked square */
+.cell__name {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(28, 12, 30, 0.34);
+  color: #fff;
+  font-size: clamp(0.4rem, 1.9vw, 0.6rem);
+  font-weight: 700;
+  line-height: 1.1;
+  padding: 3px 4px 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cell.is-marked {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: #fff;
+}
+.cell.is-marked::after {
+  content: "✓";
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.85);
+}
+.cell.is-marked .cell__expand { color: rgba(255,255,255,0.8); }
+
+.cell--free {
+  background: var(--marigold);
+  border-color: var(--marigold);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(0.55rem, 2.4vw, 0.8rem);
+  letter-spacing: 0.04em;
+  cursor: default;
+}
+.cell--free.is-marked { background: var(--marigold); border-color: var(--marigold); color: var(--ink); }
+.cell--free.is-marked::after {
+  content: "★";
+  color: var(--ink);
+  animation: free-pulse 2.4s ease-in-out infinite;
+  transform-origin: center;
+}
+@keyframes free-pulse {
+  0%, 100% { transform: scale(1);    opacity: 1;   }
+  50%      { transform: scale(1.22); opacity: 0.8; }
+}
+
+.cell.is-win {
+  animation: pop 0.5s ease;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent);
+  z-index: 2;
+}
+@keyframes pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+
+/* satisfying pop when the player marks a square (added by JS on the tap) */
+.cell.is-pop {
+  animation: cell-pop 0.42s cubic-bezier(.2, 1.5, .4, 1);
+  z-index: 3;
+}
+.cell.is-pop::after {
+  animation: check-pop 0.4s ease 0.05s both;
+}
+/* the found-person's name badge slides up into the cell when marked */
+.cell.is-pop .cell__name {
+  animation: name-slide 0.35s ease 0.12s both;
+}
+@keyframes name-slide {
+  0%   { transform: translateY(100%); opacity: 0; }
+  100% { transform: translateY(0);    opacity: 1; }
+}
+@keyframes cell-pop {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+@keyframes check-pop {
+  0%   { transform: scale(0) rotate(-25deg); opacity: 0; }
+  60%  { transform: scale(1.35) rotate(6deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0);       opacity: 1; }
+}
+
+/* staggered "deal in" when the board is revealed (Start / new card) —
+   a diagonal wave via each cell's --wave (row + col) */
+.board.is-entering .cell {
+  animation: cell-enter 0.4s ease both;
+  animation-delay: calc(var(--wave, 0) * 45ms);
+}
+@keyframes cell-enter {
+  0%   { opacity: 0; transform: scale(0.6) translateY(10px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ---- controls ------------------------------------------------------------ */
+
+.controls {
+  text-align: center;
+}
+.btn {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--ink);
+  background: var(--paper-2);
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  padding: 11px 22px;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 var(--ink);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+.btn:active {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 var(--ink);
+}
+.btn--ghost {
+  box-shadow: none;
+  border-color: var(--line);
+  background: transparent;
+  color: var(--ink-soft);
+}
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+.setup-error {
+  margin: 20px 0;
+  padding: 16px;
+  border: 2px dashed var(--wrong);
+  border-radius: var(--radius);
+  background: #fff;
+  color: var(--ink);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.footnote {
+  text-align: center;
+  margin-top: 26px;
+  color: var(--ink-soft);
+  font-size: 0.78rem;
+}
+
+/* ---- BINGO finale (selfie challenge) ------------------------------------- */
+
+.finale {
+  position: fixed;
+  inset: 0;
+  z-index: 10002;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(44, 26, 46, 0.72);
+  backdrop-filter: blur(3px);
+  animation: finale-in 0.35s ease both;
+}
+@keyframes finale-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* white sheet that pulses once — the "camera flash" as the card is revealed */
+.finale__flash {
+  position: fixed;
+  inset: 0;
+  background: #fff;
+  opacity: 0;
+  pointer-events: none;
+  animation: finale-flash 0.55s ease 0.95s both;
+}
+@keyframes finale-flash {
+  0%   { opacity: 0; }
+  28%  { opacity: 0.92; }
+  100% { opacity: 0; }
+}
+
+.finale__stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  max-width: 360px;
+  width: 100%;
+}
+
+.finale__badge {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 700;
+  font-size: clamp(3rem, 20vw, 5.6rem);
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+  color: var(--marigold);
+  text-shadow: 0 4px 0 var(--ink);
+  transform: scale(2.2) rotate(-12deg);
+  opacity: 0;
+  animation: finale-stamp 0.6s cubic-bezier(.2,1.5,.4,1) 0.2s both;
+}
+@keyframes finale-stamp {
+  0%   { transform: scale(2.2) rotate(-12deg); opacity: 0; }
+  60%  { transform: scale(0.92) rotate(-6deg); opacity: 1; }
+  100% { transform: scale(1) rotate(-6deg);    opacity: 1; }
+}
+
+.finale__card {
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  border-radius: var(--radius);
+  padding: 22px 22px 18px;
+  width: 100%;
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+  transform: translateY(28px) scale(0.95);
+  opacity: 0;
+  animation: finale-rise 0.5s cubic-bezier(.2,1.2,.4,1) 1.1s both;
+}
+@keyframes finale-rise {
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.finale__emoji {
+  display: inline-block;
+  font-size: 3.2rem;
+  line-height: 1;
+  transform: scale(0);
+  animation: finale-pop 0.5s cubic-bezier(.2,1.7,.4,1) 1.35s both;
+}
+@keyframes finale-pop {
+  0%   { transform: scale(0) rotate(-8deg); }
+  70%  { transform: scale(1.15) rotate(4deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+
+.finale__kicker {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 8px 0 2px;
+}
+.finale__prompt {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 700;
+  font-size: clamp(1.5rem, 7vw, 2rem);
+  line-height: 1.1;
+  margin: 0 0 8px;
+  color: var(--ink);
+}
+.finale__hint {
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: var(--ink-soft);
+  margin: 0 0 16px;
+}
+.finale__actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ---- prompt modal -------------------------------------------------------- */
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(44, 26, 46, 0.55);
+}
+.modal__card {
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: var(--radius);
+  padding: 26px 22px 18px;
+  max-width: 340px;
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+}
+.modal__text {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  line-height: 1.25;
+  margin: 0 0 16px;
+}
+.modal__label {
+  display: block;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 6px;
+}
+.modal__input {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  font-weight: 600;
+  text-align: center;
+  color: var(--ink);
+  background: #fffdf8;
+  border: 1.5px solid var(--ink);
+  border-radius: 12px;
+  padding: 11px 12px;
+  margin-bottom: 16px;
+}
+.modal__input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(47, 116, 192, 0.28);
+}
+.modal__actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ---- mid-game checkpoint quiz -------------------------------------------- */
+
+.modal--quiz { z-index: 10002; } /* above the prompt modal */
+.modal--quiz .modal__card {
+  max-width: 380px;
+  animation: finale-rise 0.4s cubic-bezier(.2,1.2,.4,1) both;
+}
+.quiz__kicker {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--berry);
+  margin: 0 0 8px;
+}
+.quiz__options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 4px 0 4px;
+}
+.quiz__option {
+  width: 100%;
+  text-align: center;
+  border-color: var(--ink);
+  color: var(--ink);
+  background: #fffdf8;
+  box-shadow: none;
+}
+.quiz__option:disabled { opacity: 1; cursor: default; }
+.quiz__option.is-correct {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: #fff;
+  animation: quiz-pop 0.45s cubic-bezier(.2, 1.5, .4, 1);
+}
+.quiz__option.is-wrong {
+  background: var(--wrong);
+  border-color: var(--wrong);
+  color: #fff;
+  animation: quiz-shake 0.4s ease;
+}
+@keyframes quiz-pop {
+  0%   { transform: scale(1); }
+  45%  { transform: scale(1.07); }
+  100% { transform: scale(1); }
+}
+@keyframes quiz-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-7px); }
+  40% { transform: translateX(7px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(3px); }
+}
+.quiz__feedback {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.9rem;
+  line-height: 1.35;
+  color: var(--ink);
+  margin: 12px 0 4px;
+}
+
+/* wrong-answer penalty: a cell clone that flies to another cell's spot */
+.cell.is-flying {
+  position: fixed;
+  margin: 0;
+  z-index: 10005;
+  pointer-events: none;
+  box-shadow: var(--shadow-lg);
+  transition: transform 0.5s cubic-bezier(.4, 0, .2, 1);
+}
+
+/* ---- landing / name entry ------------------------------------------------ */
+
+.landing {
+  position: fixed;
+  inset: 0;
+  z-index: 10010;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--paper);
+  overflow-y: auto;
+}
+.landing__card {
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+  background: rgba(255, 253, 248, 0.92);
+  border: 2px solid var(--ink);
+  border-radius: var(--radius);
+  padding: 30px 24px 26px;
+  box-shadow: var(--shadow-lg);
+}
+.landing__card .title { margin: 4px 0 4px; }
+.landing__lead {
+  color: var(--ink-soft);
+  font-size: 0.98rem;
+  line-height: 1.4;
+  margin: 4px 0 10px;
+}
+.landing__goal {
+  margin: 0 0 20px;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  font-weight: 700;
+  color: var(--ink);
+}
+.landing .modal__label { text-align: left; }
+.landing__room {
+  margin: 2px 0 14px;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+.landing__room strong {
+  font-family: var(--font-body);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--berry);
+}
+.landing__optional { font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--ink-soft); }
+.landing__rule {
+  text-align: left;
+  background: var(--paper-2);
+  border: 1.5px dashed var(--accent);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin: 16px 0 20px;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--ink);
+}
+.landing__rule-tag {
+  display: inline-block;
+  font-weight: 700;
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #fff;
+  background: var(--accent);
+  padding: 3px 8px;
+  border-radius: 999px;
+  margin-right: 6px;
+}
+.landing__rule em { font-style: italic; font-weight: 700; color: var(--accent); }
+.landing__rule-list {
+  margin: 8px 0 0;
+  padding-left: 1.15em;
+}
+.landing__rule-list li { margin: 5px 0; }
+.landing__card .btn { width: 100%; }
+
+.playing-as {
+  margin: 8px 0 0;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+}
+.playing-as strong { color: var(--berry); font-weight: 700; }
+
+[hidden] { display: none !important; }
+
+/* Respect users who prefer less motion */
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+  /* keep the finale readable when its reveal animations are disabled */
+  .finale, .finale__badge, .finale__card, .finale__emoji {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .finale__flash { display: none !important; }
+}

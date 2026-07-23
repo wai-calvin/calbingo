@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#f7efe1" />
+  <title>CalBingo — Host / Session</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="css/fonts.css" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* Host page is a big, projectable / printable session console. */
+    .host { text-align: center; }
+    .qr-frame {
+      display: inline-block;
+      background: #fff;
+      border: 3px solid var(--ink);
+      border-radius: 20px;
+      padding: 22px;
+      box-shadow: var(--shadow-lg);
+      margin: 8px 0 14px;
+    }
+    #qr img, #qr canvas, #qr table { display: block; width: min(64vw, 300px); height: auto; image-rendering: pixelated; }
+    .join-url {
+      font-family: var(--font-body);
+      font-weight: 700;
+      font-size: clamp(0.9rem, 3.4vw, 1.15rem);
+      word-break: break-all;
+      color: var(--berry);
+      margin: 0 auto 18px;
+      max-width: 30ch;
+    }
+    .room-code {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: clamp(2.4rem, 12vw, 3.6rem);
+      letter-spacing: 0.14em;
+      color: var(--accent);
+      margin: 6px 0 2px;
+      line-height: 1;
+    }
+    .room-label {
+      font-family: var(--font-body);
+      font-weight: 700;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      font-size: 0.66rem;
+      color: var(--ink-soft);
+    }
+    .host-lead { color: var(--ink-soft); font-size: 0.95rem; line-height: 1.45; max-width: 40ch; margin: 6px auto 18px; }
+    .title-input {
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      padding: 11px 14px;
+      border: 1.5px solid var(--ink);
+      border-radius: 999px;
+      background: #fff;
+      color: var(--ink);
+      width: min(88vw, 320px);
+      text-align: center;
+      margin: 0 auto 14px;
+      display: block;
+    }
+    .url-editor { display: flex; gap: 8px; max-width: 420px; margin: 0 auto 8px; }
+    .url-editor input {
+      flex: 1; font-family: var(--font-body); font-size: 0.9rem; padding: 10px 12px;
+      border: 1.5px solid var(--ink); border-radius: 999px; background: #fff; color: var(--ink);
+    }
+    .host-hint { color: var(--ink-soft); font-size: 0.82rem; max-width: 40ch; margin: 6px auto 0; }
+    .host-error { color: var(--wrong); font-weight: 700; font-size: 0.85rem; margin: 10px auto 0; max-width: 36ch; }
+
+    /* ---- live leaderboard ---- */
+    .lb {
+      max-width: 420px;
+      margin: 8px auto 0;
+      text-align: left;
+    }
+    .lb-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin: 18px 0 8px;
+    }
+    .lb-title {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-weight: 700;
+      font-size: 1.4rem;
+      margin: 0;
+    }
+    .lb-count { font-size: 0.82rem; font-weight: 700; color: var(--ink-soft); }
+    .lb-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+    .lb-row {
+      display: grid;
+      grid-template-columns: 1.6rem 1fr auto;
+      align-items: center;
+      gap: 10px;
+      background: #fffdf8;
+      border: 1.5px solid var(--line);
+      border-radius: 12px;
+      padding: 9px 12px;
+      box-shadow: var(--shadow);
+      animation: lb-in 0.3s ease both;
+    }
+    @keyframes lb-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    .lb-row.is-winner { background: var(--marigold); border-color: var(--marigold); }
+    .lb-rank { font-family: var(--font-display); font-weight: 700; color: var(--ink-soft); text-align: center; }
+    .lb-name { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .lb-marks {
+      font-weight: 700; font-size: 0.85rem; color: var(--berry);
+      display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;
+    }
+    .lb-row.is-winner .lb-marks { color: var(--ink); }
+    .lb-empty {
+      text-align: center; color: var(--ink-soft); font-size: 0.9rem;
+      border: 1.5px dashed var(--line); border-radius: 12px; padding: 18px; background: #fffdf8;
+    }
+
+    @media print {
+      body { background: #fff; }
+      .wrap { background: #fff; }
+      .url-editor, .host-hint, .eyebrow, .btn, .title-input, .lb, .host-lead { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap host">
+    <header class="masthead">
+      <span class="eyebrow">Host screen</span>
+      <h1 class="title">Scan to <em>play</em></h1>
+    </header>
+
+    <!-- No session yet (backend configured): create one -->
+    <section id="host-start" hidden>
+      <p class="host-lead">Start a room, then show or project this screen. Everyone
+        scans the same code, types their name, and gets their own card — and you'll
+        watch them climb the leaderboard live.</p>
+      <input id="session-title" class="title-input" type="text" maxlength="60"
+             placeholder="Name this game (optional)" />
+      <button id="create-session" class="btn" type="button">Start a session</button>
+      <p id="host-error" class="host-error" hidden></p>
+    </section>
+
+    <!-- Live session: code + QR + leaderboard -->
+    <section id="host-live" hidden>
+      <p class="room-label">Room code</p>
+      <p id="room-code" class="room-code"></p>
+      <div class="qr-frame"><div id="qr"></div></div>
+      <p id="join-url" class="join-url"></p>
+
+      <div class="lb">
+        <div class="lb-head">
+          <h2 class="lb-title">Leaderboard</h2>
+          <span id="lb-count" class="lb-count"></span>
+        </div>
+        <ul id="lb-list" class="lb-list"></ul>
+      </div>
+
+      <p style="margin-top:20px;">
+        <button id="new-session" class="btn btn--ghost" type="button">Start a new session</button>
+      </p>
+    </section>
+
+    <!-- No backend configured: classic single-QR fallback (points at index.html) -->
+    <section id="host-solo" hidden>
+      <div class="qr-frame"><div id="qr-solo"></div></div>
+      <p id="join-url-solo" class="join-url"></p>
+      <div class="url-editor">
+        <input id="url-input" type="url" inputmode="url" placeholder="https://your-site.example/" />
+        <button id="url-apply" class="btn" type="button">Set</button>
+      </div>
+      <p class="host-hint">
+        Every scan deals a fresh card, saved on that phone. To run a shared room
+        with a <b>live leaderboard</b>, add your free Supabase keys in
+        <code>js/config.js</code> (see <code>README.md</code>).
+      </p>
+    </section>
+  </main>
+
+  <script src="vendor/qrcode.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="vendor/supabase.min.js"></script>
+  <script src="js/store.js"></script>
+  <script>
+    (function () {
+      var Store = window.CalBingoStore;
+      var ACTIVE_KEY = "calbingo.host.session";
+      var NEEDED = 6; // squares in a line — used only for the leaderboard hint
+
+      var els = {
+        start: document.getElementById("host-start"),
+        live: document.getElementById("host-live"),
+        solo: document.getElementById("host-solo"),
+        title: document.getElementById("session-title"),
+        create: document.getElementById("create-session"),
+        error: document.getElementById("host-error"),
+        newSession: document.getElementById("new-session"),
+        roomCode: document.getElementById("room-code"),
+        qr: document.getElementById("qr"),
+        joinUrl: document.getElementById("join-url"),
+        lbList: document.getElementById("lb-list"),
+        lbCount: document.getElementById("lb-count"),
+      };
+
+      function baseGameUrl() {
+        var here = window.location.href.split("#")[0].split("?")[0];
+        return here.replace(/host\.html?$/i, "index.html");
+      }
+      function joinUrlFor(code) {
+        return baseGameUrl() + (code ? "#s=" + encodeURIComponent(code) : "");
+      }
+
+      function drawQR(box, url) {
+        var qr = qrcode(0, "M");    // auto version, medium error correction
+        qr.addData(url);
+        qr.make();
+        box.innerHTML = qr.createImgTag(8, 8);
+        var img = box.querySelector("img");
+        if (img) img.alt = "QR code linking to " + url;
+      }
+
+      /* ---- leaderboard ---- */
+
+      function sortRows(rows) {
+        return rows.slice().sort(function (a, b) {
+          if (!!b.has_won !== !!a.has_won) return b.has_won ? 1 : -1;   // winners first
+          if (a.has_won && b.has_won) {                                  // earliest win first
+            return String(a.won_at || "").localeCompare(String(b.won_at || ""));
+          }
+          if ((b.mark_count || 0) !== (a.mark_count || 0)) return (b.mark_count || 0) - (a.mark_count || 0);
+          return String(a.updated_at || "").localeCompare(String(b.updated_at || "")); // steady order
+        });
+      }
+
+      function renderLeaderboard(rows) {
+        var sorted = sortRows(rows || []);
+        els.lbCount.textContent = sorted.length
+          ? sorted.length + (sorted.length === 1 ? " player" : " players")
+          : "";
+        els.lbList.innerHTML = "";
+        if (!sorted.length) {
+          var empty = document.createElement("li");
+          empty.className = "lb-empty";
+          empty.textContent = "Waiting for players to join…";
+          els.lbList.appendChild(empty);
+          return;
+        }
+        sorted.forEach(function (row, i) {
+          var li = document.createElement("li");
+          li.className = "lb-row" + (row.has_won ? " is-winner" : "");
+
+          var rank = document.createElement("span");
+          rank.className = "lb-rank";
+          rank.textContent = row.has_won ? "🏆" : String(i + 1);
+
+          var name = document.createElement("span");
+          name.className = "lb-name";
+          name.textContent = row.name || "—";
+
+          var marks = document.createElement("span");
+          marks.className = "lb-marks";
+          marks.textContent = row.has_won ? "BINGO!" : (row.mark_count || 0) + " ✓";
+
+          li.appendChild(rank);
+          li.appendChild(name);
+          li.appendChild(marks);
+          els.lbList.appendChild(li);
+        });
+      }
+
+      var unsubscribe = null;
+      async function watch(code) {
+        renderLeaderboard(await Store.fetchLeaderboard(code));
+        if (unsubscribe) unsubscribe();
+        // Any row change → re-pull the (small) list so sorting stays correct.
+        unsubscribe = Store.subscribeLeaderboard(code, async function () {
+          renderLeaderboard(await Store.fetchLeaderboard(code));
+        });
+      }
+
+      /* ---- session lifecycle ---- */
+
+      function showLive(code) {
+        els.roomCode.textContent = code;
+        var url = joinUrlFor(code);
+        els.joinUrl.textContent = url;
+        drawQR(els.qr, url);
+        els.start.hidden = true;
+        els.solo.hidden = true;
+        els.live.hidden = false;
+        try { localStorage.setItem(ACTIVE_KEY, code); } catch (e) { /* ignore */ }
+        watch(code);
+      }
+
+      async function createSession() {
+        els.error.hidden = true;
+        els.create.disabled = true;
+        els.create.textContent = "Starting…";
+        try {
+          var code = await Store.createSession({ title: (els.title.value || "").trim() || null });
+          showLive(code);
+        } catch (e) {
+          els.error.textContent = (e && e.message) || "Could not start the session.";
+          els.error.hidden = false;
+        } finally {
+          els.create.disabled = false;
+          els.create.textContent = "Start a session";
+        }
+      }
+
+      function showStart() {
+        if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+        try { localStorage.removeItem(ACTIVE_KEY); } catch (e) { /* ignore */ }
+        els.live.hidden = true;
+        els.solo.hidden = true;
+        els.start.hidden = false;
+      }
+
+      /* ---- classic no-backend fallback ---- */
+
+      function bootSolo() {
+        var qrBox = document.getElementById("qr-solo");
+        var joinUrl = document.getElementById("join-url-solo");
+        var input = document.getElementById("url-input");
+        function draw(url) {
+          joinUrl.textContent = url;
+          input.value = url;
+          drawQR(qrBox, url);
+        }
+        document.getElementById("url-apply").addEventListener("click", function () {
+          var v = input.value.trim(); if (v) draw(v);
+        });
+        input.addEventListener("keydown", function (e) {
+          if (e.key === "Enter") { var v = input.value.trim(); if (v) draw(v); }
+        });
+        els.solo.hidden = false;
+        draw(baseGameUrl());
+      }
+
+      /* ---- boot ---- */
+
+      if (!Store || !Store.hasBackend) {
+        bootSolo();
+      } else {
+        els.create.addEventListener("click", createSession);
+        els.title.addEventListener("keydown", function (e) {
+          if (e.key === "Enter") { e.preventDefault(); createSession(); }
+        });
+        els.newSession.addEventListener("click", showStart);
+        var saved = "";
+        try { saved = localStorage.getItem(ACTIVE_KEY) || ""; } catch (e) { /* ignore */ }
+        if (saved) showLive(saved);
+        else els.start.hidden = false;
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "name": "CalBingo — Calvin's Human Bingo",
+  "short_name": "CalBingo",
+  "description": "A mingle-and-meet bingo game about Calvin. Find someone who matches each square!",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f7efe1",
+  "theme_color": "#f7efe1",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}

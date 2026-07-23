@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f7efe1" />
+  <title>CalBingo — Calvin's Human Bingo</title>
+  <meta name="description" content="A mingle-and-meet bingo game about Calvin. Find someone who matches each square!" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="icon.svg" />
+  <link rel="stylesheet" href="css/fonts.css" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <!-- landing / name entry — shown on every visit before the board -->
+  <div id="landing" class="landing" role="dialog" aria-modal="true" aria-labelledby="landing-title">
+    <div class="landing__card">
+      <h1 id="landing-title" class="title">Cal<em>Bingo</em></h1>
+      <p class="landing__lead">Pop in your name, then go mingle and meet the room.</p>
+      <p class="landing__goal">🎯 Fill any full line — across, down, or diagonal — to win.</p>
+      <label class="modal__label" for="landing-name">Your name</label>
+      <input id="landing-name" class="modal__input" type="text"
+             autocomplete="off" autocapitalize="words" maxlength="40"
+             placeholder="Type your name…" />
+
+      <!-- Room code from the QR/URL (#s=CODE): shown as a read-only chip -->
+      <p id="landing-room" class="landing__room" hidden>Room <strong id="landing-room-code"></strong></p>
+
+      <!-- No code in the URL but a backend is set up: let them type/rejoin a room -->
+      <div id="landing-code-field" hidden>
+        <label class="modal__label" for="landing-code">Room code <span class="landing__optional">(optional)</span></label>
+        <input id="landing-code" class="modal__input" type="text"
+               autocomplete="off" autocapitalize="characters" maxlength="8"
+               placeholder="e.g. QK4T" />
+      </div>
+
+      <div class="landing__rule">
+        <span class="landing__rule-tag">Rules</span>
+        <ul class="landing__rule-list">
+          <li>You can’t use <em>yourself</em> to fill a square — every box has to
+            be someone else. Go find real people!</li>
+          <li>One person <em>can</em> cover multiple boxes — if they fit more than
+            one square, use them for each.</li>
+        </ul>
+      </div>
+      <button id="landing-start" class="btn" type="button" disabled>Start playing</button>
+    </div>
+  </div>
+
+  <main class="wrap">
+    <header class="masthead">
+      <h1 class="title">Cal<em>Bingo</em></h1>
+      <p class="instructions">
+        Mingle! Find a real person who matches a square, then tap it.
+        Fill any full line — across, down, or diagonal — to win.
+      </p>
+      <p id="playing-as" class="playing-as" hidden></p>
+    </header>
+
+    <div id="setup-error" class="setup-error" hidden></div>
+
+    <div id="board" class="board" aria-label="Bingo card"></div>
+
+    <div class="controls">
+      <button id="new-card" class="btn btn--ghost" type="button">Start a new card</button>
+    </div>
+
+    <p class="footnote">Tap a square to write down who you found.</p>
+  </main>
+
+  <!-- BINGO finale: stamps in, camera-flash, then the final selfie challenge -->
+  <div id="finale" class="finale" role="alertdialog" aria-live="assertive"
+       aria-label="Bingo! Final challenge" hidden>
+    <div class="finale__flash" aria-hidden="true"></div>
+    <div class="finale__stage">
+      <div class="finale__badge">BINGO!</div>
+      <div class="finale__card">
+        <div class="finale__emoji" aria-hidden="true">📸</div>
+        <p class="finale__kicker">One last challenge</p>
+        <h2 class="finale__prompt">Take a selfie with Calvin!</h2>
+        <p class="finale__hint">Track down the birthday star, squeeze in close, and smile.
+          Snap it to seal your win.</p>
+        <div class="finale__actions">
+          <button id="finale-done" class="btn" type="button">Got the selfie! 🎉</button>
+          <button id="finale-close" class="btn btn--ghost" type="button">Keep playing</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- prompt reader + "who did you find?" -->
+  <div id="prompt-modal" class="modal" role="dialog" aria-modal="true" aria-label="Prompt" hidden>
+    <div class="modal__card">
+      <p id="prompt-modal-text" class="modal__text"></p>
+      <label class="modal__label" for="prompt-modal-input">Who did you find?</label>
+      <input id="prompt-modal-input" class="modal__input" type="text"
+             autocomplete="off" autocapitalize="words"
+             placeholder="Type their name…" />
+      <div class="modal__actions">
+        <button id="prompt-modal-save" class="btn" type="button">Mark it</button>
+        <button id="prompt-modal-unmark" class="btn btn--ghost" type="button" hidden>Un-mark</button>
+        <button id="prompt-modal-close" class="btn btn--ghost" type="button">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- mid-game checkpoint: pops up after every 2 marks (until a win), must be answered -->
+  <div id="quiz-modal" class="modal modal--quiz" role="dialog" aria-modal="true"
+       aria-labelledby="quiz-question" hidden>
+    <div class="modal__card">
+      <p class="quiz__kicker">Checkpoint! ✋</p>
+      <p id="quiz-question" class="modal__text"></p>
+      <div id="quiz-options" class="quiz__options"></div>
+      <p id="quiz-feedback" class="quiz__feedback" role="status" hidden></p>
+    </div>
+  </div>
+
+  <script src="js/prompts.js"></script>
+  <script src="js/confetti.js"></script>
+  <!-- Optional backend (sessions + live leaderboard). Blank config = local-only. -->
+  <script src="js/config.js"></script>
+  <script src="vendor/supabase.min.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/bingo.js"></script>
+  <script>
+    // Offline support: cache the game so it survives dropped signal / reloads.
+    // Also auto-apply updates: when a new service worker takes control (because
+    // sw.js changed / CACHE_VERSION was bumped), reload ONCE so the new files
+    // show without anyone clearing their cache. We skip this on the very first
+    // visit (no prior controller) to avoid a needless reload.
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        var hadController = !!navigator.serviceWorker.controller;
+        var refreshing = false;
+        navigator.serviceWorker.addEventListener("controllerchange", function () {
+          if (refreshing || !hadController) return;
+          refreshing = true;
+          window.location.reload();
+        });
+        navigator.serviceWorker.register("sw.js").catch(function () { /* offline is a bonus */ });
+      });
+    }
+  </script>
+</body>
+</html>
