@@ -484,6 +484,11 @@
     }
   }
 
+  // A box can't be marked without a name — keep the Save/Mark button in sync.
+  function syncModalSave() {
+    if (els.modalSave) els.modalSave.disabled = !els.modalInput.value.trim();
+  }
+
   function openModal(index) {
     if (state.order[index] === -1) return; // FREE has nothing to fill in
     activeCell = index;
@@ -491,6 +496,7 @@
     els.modalInput.value = state.names[index] || "";
     els.modalSave.textContent = state.marked[index] ? "Save" : "Mark it";
     els.modalUnmark.hidden = !state.marked[index];
+    syncModalSave();
     els.modal.hidden = false;
     els.modalInput.focus();
   }
@@ -502,7 +508,9 @@
 
   function saveFromModal() {
     if (activeCell < 0) return;
-    setCell(activeCell, true, els.modalInput.value.trim());
+    const name = els.modalInput.value.trim();
+    if (!name) { els.modalInput.focus(); return; }  // a box needs a name to be marked
+    setCell(activeCell, true, name);
     closeModal();
   }
 
@@ -538,9 +546,12 @@
     });
 
     if (els.modalSave) els.modalSave.addEventListener("click", saveFromModal);
-    if (els.modalInput) els.modalInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") { e.preventDefault(); saveFromModal(); }
-    });
+    if (els.modalInput) {
+      els.modalInput.addEventListener("input", syncModalSave);
+      els.modalInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") { e.preventDefault(); saveFromModal(); }
+      });
+    }
     if (els.modalUnmark) els.modalUnmark.addEventListener("click", () => {
       if (activeCell >= 0) setCell(activeCell, false);
       closeModal();
