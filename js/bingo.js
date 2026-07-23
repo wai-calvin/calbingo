@@ -17,7 +17,7 @@
   const QUIZ_INTERVAL = 2;           // show a checkpoint after every N marks (until a win)
   const QUIZ_FEEDBACK_MS = 1500;     // how long the answer feedback stays up
   const SWAP_MS = 500;               // swap-animation duration (matches CSS)
-  const MARK_POP_MS = 460;           // let the square's mark/✓ pop finish before a checkpoint pops up (matches CSS cell-pop)
+  const QUIZ_DELAY_MS = 1000;        // deliberate pause after marking so the player sees the ✓ land before a checkpoint pops up
 
   const PROMPTS = window.CALBINGO_PROMPTS || [];
   const FREE_LABEL = window.CALBINGO_FREE_LABEL || "FREE";
@@ -448,7 +448,7 @@
     // so the player sees the ✓ pop first (immediate when motion is reduced).
     if (marked) {
       const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      setTimeout(() => maybeShowQuiz(index), reduce ? 0 : MARK_POP_MS);
+      setTimeout(() => maybeShowQuiz(index), reduce ? 0 : QUIZ_DELAY_MS);
     }
   }
 
