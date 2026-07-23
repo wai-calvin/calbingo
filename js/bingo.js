@@ -17,6 +17,7 @@
   const QUIZ_INTERVAL = 2;           // show a checkpoint after every N marks (until a win)
   const QUIZ_FEEDBACK_MS = 1500;     // how long the answer feedback stays up
   const SWAP_MS = 500;               // swap-animation duration (matches CSS)
+  const MARK_POP_MS = 460;           // let the square's mark/✓ pop finish before a checkpoint pops up (matches CSS cell-pop)
 
   const PROMPTS = window.CALBINGO_PROMPTS || [];
   const FREE_LABEL = window.CALBINGO_FREE_LABEL || "FREE";
@@ -443,7 +444,12 @@
     updateNewCardState();
     checkWin();                  // flips hasWon BEFORE we save, so the leaderboard's
     save();                      // has_won / mark_count are current for this move
-    if (marked) maybeShowQuiz(index);
+    // Wait for the square's mark animation to land before a checkpoint pops up,
+    // so the player sees the ✓ pop first (immediate when motion is reduced).
+    if (marked) {
+      const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      setTimeout(() => maybeShowQuiz(index), reduce ? 0 : MARK_POP_MS);
+    }
   }
 
   // Reveal the full-screen finale: BINGO stamp -> camera flash -> selfie challenge.

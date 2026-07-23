@@ -8,7 +8,7 @@
  * Relative URLs everywhere so it also works from a subdirectory (GitHub Pages).
  * Bump CACHE_VERSION whenever you change any cached file to force a refresh.
  * ==========================================================================*/
-const CACHE_VERSION = "calbingo-v23";
+const CACHE_VERSION = "calbingo-v24";
 
 const ASSETS = [
   "./",
